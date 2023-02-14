@@ -6,6 +6,7 @@ plugins {
 	kotlin("jvm") version "1.6.10"
 	kotlin("plugin.spring") version "1.6.10"
 	kotlin("plugin.jpa") version "1.6.10"
+	`maven-publish`
 }
 
 group = "es.cpinedo.base"
@@ -51,6 +52,24 @@ tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
 		jvmTarget = "11"
+	}
+}
+
+publishing {
+	repositories {
+		maven {
+			name = "kotlin-spring-boot-base"
+			url = uri("https://maven.pkg.github.com/cpinedo/kotlin-spring-boot-base")
+			credentials {
+				username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
+				password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+			}
+		}
+	}
+	publications {
+		register<MavenPublication>("gpr") {
+			from(components["java"])
+		}
 	}
 }
 
