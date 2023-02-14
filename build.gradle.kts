@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "es.cpinedo.base"
-version = "1.0.1"
+version = "1.0.2"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
@@ -46,6 +46,11 @@ dependencies {
 
 allOpen {
 	annotation("javax.persistence.Entity")
+	annotation("org.springframework.stereotype.Controller")
+	annotation("org.springframework.stereotype.Service")
+	annotation("org.springframework.stereotype.Repository")
+	annotation("org.springframework.boot.autoconfigure.SpringBootApplication")
+	annotation("org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration")
 }
 
 tasks.withType<KotlinCompile> {
