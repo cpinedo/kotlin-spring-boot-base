@@ -14,7 +14,7 @@ basePackages = [
 )
 @EntityScan(
 basePackages = [
-""project.base.package",", 
+"project.base.package",", 
 "es.cpinedo.kotlinbase.security.infrastructure.repository.model"
 ])
 ```

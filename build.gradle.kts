@@ -10,10 +10,11 @@ plugins {
 }
 
 group = "es.cpinedo.base"
-version = "1.0.2"
+version = "1.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 }
 
@@ -22,6 +23,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+//	implementation("org.springframework.security:spring-security-oauth2-client:6.0.1")
+	implementation("com.google.api-client:google-api-client:2.2.0")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")

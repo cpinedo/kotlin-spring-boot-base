@@ -1,5 +1,9 @@
 package es.cpinedo.kotlinbase.security.infrastructure.resource
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
 import es.cpinedo.kotlinbase.core.domain.CommandQueryBus
 import es.cpinedo.kotlinbase.core.domain.CoreException
 import es.cpinedo.kotlinbase.core.domain.ErrorType
@@ -68,6 +72,37 @@ class AuthenticationController(
     fun changePassword(): ResponseEntity<MessageResponse> {
         commandQueryBus.dispatch(DeleteAccountCommand())
         return ResponseEntity.ok(MessageResponse("ok"))
+    }
+
+    @GetMapping("/auth/google")
+    @PreAuthorize("hasRole('USER')")
+    fun handleGoogleAuth(
+        @RequestParam idTokenString: String
+    ): ResponseEntity<String> {
+        val verifier: GoogleIdTokenVerifier =
+            GoogleIdTokenVerifier.Builder(
+                NetHttpTransport(), GsonFactory()
+            )
+                .setAudience(listOf("407408718192.apps.googleusercontent.com"))
+                .build()
+
+        val idToken: GoogleIdToken = verifier.verify(idTokenString)
+        val payload: GoogleIdToken.Payload? = idToken.payload
+
+        // Print user identifier
+        val userId: String = payload?.subject ?: throw CoreException("error", ErrorType.INTERNAL_SERVER_ERROR)
+        println("User ID: $userId")
+
+        // Get profile information from payload
+        val email = payload?.email
+        val emailVerified = payload?.emailVerified
+        val name = payload?.get("name") as String
+        val pictureUrl = payload["picture"] as String
+        val locale = payload["locale"] as String
+        val familyName = payload["family_name"] as String
+        val givenName = payload["given_name"] as String
+
+        return ResponseEntity.ok("$email")
     }
 
     class JwtTokenNotPresentException : CoreException("Missing jwt token", ErrorType.BAD_REQUEST)
