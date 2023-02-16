@@ -28,3 +28,28 @@ class CreateUserHandler() : Handler<Unit, CreateUserCommand> {
     }
 }
 ```
+
+Register the handlers in a command query bus implementation.
+
+```kotlin
+@Bean
+    fun commandQueryBusConfiguration(
+        jwtUtils: JwtUtils,
+        refreshTokenService: RefreshTokenServiceImpl,
+        authenticationService: AuthenticationService,
+        userService: UserService,
+        emailService: EmailService,
+        securityUserRepository: SecurityUserRepository,
+        googleTokenValidatorService: GoogleTokenValidatorService,
+    ): CommandQueryBus {
+        return CommandQueryBusBasic(authenticatedUserService).apply {
+            registerQueryHandler(DoLoginHandler(authenticationService, jwtUtils, refreshTokenService))
+            registerQueryHandler(LoginWithGoogleHandler(this, googleTokenValidatorService, jwtUtils, refreshTokenService, securityUserRepository))
+            registerCommandHandler(SignUpHandler(userService, this))
+            registerQueryHandler(RefreshTokenHandler(refreshTokenService, userService, jwtUtils))
+            registerCommandHandler(RecoverPasswordHandler(userService, emailService, this))
+            registerCommandHandler(ChangePasswordHandler(userService, authenticatedUserService))
+            registerCommandHandler(ChangePasswordInternalHandler(userService))
+        }
+    }
+```

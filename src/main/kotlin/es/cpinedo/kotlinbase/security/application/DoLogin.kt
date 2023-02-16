@@ -6,6 +6,7 @@ import es.cpinedo.kotlinbase.security.application.ports.AuthenticationService
 import es.cpinedo.kotlinbase.security.application.ports.JwtUtils
 import es.cpinedo.kotlinbase.security.application.ports.RefreshTokenService
 import es.cpinedo.kotlinbase.security.domain.JwtToken
+import es.cpinedo.kotlinbase.security.domain.LoginMethod
 import es.cpinedo.kotlinbase.security.domain.SecurityUserEntity
 
 data class LoginResponse(val token: JwtToken, val refreshToken: RefreshTokenData)
@@ -17,10 +18,10 @@ class DoLoginHandler(
 ) : Handler<LoginResponse, LoginQuery> {
     override fun invoke(request: LoginQuery): LoginResponse {
         val user: SecurityUserEntity = authenticationService.performAuthentication(
-            request.user,
+            request.email,
             request.password
         )
-        val jwt: JwtToken = jwtUtils.generateTokenFromUsername(user.username.username)
+        val jwt: JwtToken = jwtUtils.generateTokenFromEmail(user.email, LoginMethod.DIRECT)
         val refreshToken: RefreshTokenData = refreshTokenService.createRefreshToken(user.id.id)
 
         return LoginResponse(jwt, refreshToken)

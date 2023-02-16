@@ -12,10 +12,10 @@ class SecurityUserDbEntity(
     var id: UUID,
 
     @Column
-    var username: String,
+    var email: String,
 
     @Column
-    var email: String,
+    var alias: String,
 
     @Column
     var password: String,
@@ -34,6 +34,6 @@ class SecurityUserDbEntity(
 ){
     fun toUserData(): UserData {
         val roles = this.roles.mapNotNull { it.name }.toSet()
-        return UserData(this.id, this.username, this.email, roles, this.erased)
+        return UserData(this.id, this.alias, this.email, roles, this.erased)
     }
 }

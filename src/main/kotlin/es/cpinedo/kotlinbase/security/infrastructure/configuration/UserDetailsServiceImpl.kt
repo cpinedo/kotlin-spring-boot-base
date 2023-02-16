@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service
 
 @Service
 class UserDetailsServiceImpl(val securityUserRepository: SecurityUserRepository) : UserDetailsService {
-    override fun loadUserByUsername(username: String): UserDetails {
-        val userEntity = securityUserRepository.findByUsername(username) ?: throw UsernameNotFoundException("User not found $username")
+    override fun loadUserByUsername(email: String): UserDetails {
+        val userEntity = securityUserRepository.findByEmail(email) ?: throw UserNotFoundException("User not found $email")
         return UserDetailsImpl(userEntity)
     }
 
-    class UsernameNotFoundException(message:String) : CoreException(message, ErrorType.NOT_FOUND)
+    class UserNotFoundException(message:String) : CoreException(message, ErrorType.NOT_FOUND)
 }

@@ -4,6 +4,8 @@ import es.cpinedo.kotlinbase.core.domain.CoreException
 import es.cpinedo.kotlinbase.core.domain.ErrorType
 import es.cpinedo.kotlinbase.security.application.ports.JwtUtils
 import es.cpinedo.kotlinbase.security.domain.JwtToken
+import es.cpinedo.kotlinbase.security.domain.LoginMethod
+import es.cpinedo.kotlinbase.security.domain.TokenData
 import es.cpinedo.kotlinbase.security.infrastructure.configuration.SecurityConfigurationValues
 import io.jsonwebtoken.*
 import mu.KotlinLogging
@@ -15,6 +17,7 @@ import java.util.*
 import javax.annotation.PostConstruct
 import javax.crypto.spec.SecretKeySpec
 import javax.xml.bind.DatatypeConverter
+import kotlin.collections.ArrayList
 
 @Component
 class JwtUtilsImpl(
@@ -31,17 +34,22 @@ class JwtUtilsImpl(
         secret = Base64.getEncoder().encodeToString(configurationValues.jwtRawSecret!!.encodeToByteArray())
     }
 
-    override fun generateTokenFromUsername(username: String): JwtToken {
-        val userDetails = userDetailsServiceImpl.loadUserByUsername(username)
+    override fun generateTokenFromEmail(email: String, loginMethod: LoginMethod): JwtToken {
+        val userDetails = userDetailsServiceImpl.loadUserByUsername(email)
         val roles = userDetails.authorities.map { ga -> ga.authority }
-        return buildToken(userDetails.username, roles.toTypedArray())
+        return buildToken(
+            alias = userDetails.username,
+                    email = email,
+                    loginMethod = loginMethod,
+                    grantedAuthorities = roles.toTypedArray(),
+            )
     }
 
     override fun getUserNameFromJwtToken(token: String?): String {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).body.subject
     }
 
-    override fun getUserNameFromExpiredJwtToken(token: String): String {
+    override fun getEmailFromExpiredJwtToken(token: String): String {
         try {
             Jwts.parser().setSigningKey(secret).parseClaimsJws(token).body.subject
             throw TokenNotExpiredYetException()
@@ -68,7 +76,12 @@ class JwtUtilsImpl(
         return false
     }
 
-    override fun buildToken(username: String, grantedAuthorities: Array<String>): JwtToken {
+    override fun buildToken(
+        alias: String,
+        email: String,
+        loginMethod: LoginMethod,
+        grantedAuthorities: Array<String>
+    ): JwtToken {
         val apiKeySecretBytes =
             DatatypeConverter.parseBase64Binary(secret)
         val signingKey: Key = SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.jcaName)
@@ -77,16 +90,30 @@ class JwtUtilsImpl(
 
         return JwtToken(
             Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuer(configurationValues.jwtIssuer)
                 .setIssuedAt(Date())
                 .setExpiration(expirationTime)
                 .claim("authorities", grantedAuthorities)
+                .claim("loginMethod", loginMethod.name)
+                .claim("alias", alias)
                 .signWith(SignatureAlgorithm.HS512, signingKey)
                 .compact(), expirationTime.time
         )
     }
 
+    override fun getTokenData(token: String): TokenData {
+        return with(Jwts.parser().setSigningKey(secret.toByteArray()).parseClaimsJws(token).body) {
+            TokenData(
+                this["sub"] as String,
+                this["alias"] as String,
+                LoginMethod.valueOf(this["loginMethod"] as String),
+                (this["authorities"] as ArrayList<String>).toList(),
+            )
+        }
+    }
+
     class TokenNotExpiredYetException : CoreException("The token didn't expire yet", ErrorType.CONFLICT)
+
 
 }

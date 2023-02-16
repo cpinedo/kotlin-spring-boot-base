@@ -1,9 +1,5 @@
 package es.cpinedo.kotlinbase.security.infrastructure.resource
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.gson.GsonFactory
 import es.cpinedo.kotlinbase.core.domain.CommandQueryBus
 import es.cpinedo.kotlinbase.core.domain.CoreException
 import es.cpinedo.kotlinbase.core.domain.ErrorType
@@ -26,14 +22,22 @@ class AuthenticationController(
         return ResponseEntity.ok(JwtResponse.Builders.of(result))
     }
 
+    @PostMapping("/google")
+    fun handleGoogleAuth(
+        @RequestBody googleLoginRequest: GoogleLoginRequest
+    ): ResponseEntity<JwtResponse> {
+        return commandQueryBus.dispatch(LoginWithGoogleQuery(googleLoginRequest.idToken))
+            .let { ResponseEntity.ok(JwtResponse.Builders.of(it)) }
+    }
+
     @PostMapping("/signup")
     fun registerUser(@RequestBody signUpRequest: SignupRequest): ResponseEntity<MessageResponse> {
         commandQueryBus.dispatch(
             SignUpCommand(
-                signUpRequest.username,
-                signUpRequest.password,
-                signUpRequest.email,
-                signUpRequest.roles
+                alias = signUpRequest.alias,
+                password = signUpRequest.password,
+                email = signUpRequest.email,
+                roles = signUpRequest.roles
             )
         )
         return ResponseEntity.ok(MessageResponse("User registered successfully!"))
@@ -74,37 +78,6 @@ class AuthenticationController(
         return ResponseEntity.ok(MessageResponse("ok"))
     }
 
-    @GetMapping("/auth/google")
-    @PreAuthorize("hasRole('USER')")
-    fun handleGoogleAuth(
-        @RequestParam idTokenString: String
-    ): ResponseEntity<String> {
-        val verifier: GoogleIdTokenVerifier =
-            GoogleIdTokenVerifier.Builder(
-                NetHttpTransport(), GsonFactory()
-            )
-                .setAudience(listOf("407408718192.apps.googleusercontent.com"))
-                .build()
-
-        val idToken: GoogleIdToken = verifier.verify(idTokenString)
-        val payload: GoogleIdToken.Payload? = idToken.payload
-
-        // Print user identifier
-        val userId: String = payload?.subject ?: throw CoreException("error", ErrorType.INTERNAL_SERVER_ERROR)
-        println("User ID: $userId")
-
-        // Get profile information from payload
-        val email = payload?.email
-        val emailVerified = payload?.emailVerified
-        val name = payload?.get("name") as String
-        val pictureUrl = payload["picture"] as String
-        val locale = payload["locale"] as String
-        val familyName = payload["family_name"] as String
-        val givenName = payload["given_name"] as String
-
-        return ResponseEntity.ok("$email")
-    }
-
     class JwtTokenNotPresentException : CoreException("Missing jwt token", ErrorType.BAD_REQUEST)
 
     private fun extractTokenFromAuthorizationHeader(header: String): String? {
@@ -120,7 +93,7 @@ class AuthenticationController(
 
     data class TokenRefreshRequest(val refreshToken: String)
 
-    data class SignupRequest(val username: String, val password: String, val email: String, val roles: Set<String>)
+    data class SignupRequest(val alias: String, val password: String, val email: String, val roles: Set<String>)
 
     data class MessageResponse(val message: String)
 
@@ -154,5 +127,6 @@ class AuthenticationController(
     }
 
     data class LoginRequest(val username: String, val password: String)
+    data class GoogleLoginRequest(val idToken: String)
 
 }

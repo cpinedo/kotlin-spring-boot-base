@@ -20,12 +20,12 @@ class RefreshTokenHandler(
         return refreshTokenService.find(request.refreshToken)
             .filter { refreshToken ->
                 val user = refreshToken.userId?.let { userService.findUserById(it) }
-                user?.username?.equals(jwtUtils.getUserNameFromExpiredJwtToken(request.token)) ?: false
+                user?.email?.equals(jwtUtils.getEmailFromExpiredJwtToken(request.token)) ?: false
             }
             .map(refreshTokenService::verifyExpiration)
             .map { oldRefreshToken ->
                 val user = oldRefreshToken?.userId?.let { userService.findUserById(it) }
-                val jwt: JwtToken = jwtUtils.generateTokenFromUsername(user!!.username)
+                val jwt: JwtToken = jwtUtils.generateTokenFromEmail(user!!.email, jwtUtils.getTokenData(request.token).loginMethod)
                 val refreshToken: RefreshTokenData = refreshTokenService.refreshRefreshToken(oldRefreshToken)
 
                 RefreshTokenResponse(jwt, refreshToken)

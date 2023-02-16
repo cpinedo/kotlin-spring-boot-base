@@ -22,8 +22,8 @@ class UserServiceImpl(
         return securityUserRepository.findById(id).let { it.get().toUserData() }
     }
 
-    override fun userNameInUse(username: String): Boolean {
-        return securityUserRepository.existsByUsername(username)
+    override fun aliasInUse(alias: String): Boolean {
+        return securityUserRepository.existsByAlias(alias)
     }
 
     override fun emailInUse(email: String): Boolean {
@@ -36,12 +36,12 @@ class UserServiceImpl(
         }.toHashSet()
 
         val securityUserDbEntityEntity = SecurityUserDbEntity(
-            user.id,
-            user.username,
-            user.email,
-            encoder.encode(password),
-            user.erased,
-            roles
+            id=user.id,
+            email=user.email,
+            alias=user.alias,
+            password=encoder.encode(password),
+            erased=user.erased,
+            roles=roles
         )
 
         return securityUserRepository.save(securityUserDbEntityEntity).toUserData()
@@ -71,7 +71,7 @@ class UserServiceImpl(
 
     override fun verifyPassword(id: UUID, currentPassword: String) {
         authenticationService.performAuthentication(
-            securityUserRepository.findById(id).get().username,
+            securityUserRepository.findById(id).get().email,
             currentPassword
         )
     }

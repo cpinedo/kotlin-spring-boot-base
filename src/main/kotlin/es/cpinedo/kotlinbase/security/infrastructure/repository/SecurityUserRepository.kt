@@ -5,8 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
 
 interface SecurityUserRepository : JpaRepository<SecurityUserDbEntity, UUID> {
-    fun findByUsername(username: String): SecurityUserDbEntity?
-    fun existsByUsername(username: String): Boolean
+    fun existsByAlias(alias: String): Boolean
     fun existsByEmail(email: String): Boolean
     fun findByEmail(mail: String): SecurityUserDbEntity?
 }

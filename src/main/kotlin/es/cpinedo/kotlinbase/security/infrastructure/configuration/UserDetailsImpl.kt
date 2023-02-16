@@ -22,7 +22,7 @@ data class UserDetailsImpl(val securityUserDbEntity: SecurityUserDbEntity) : Use
 
     override fun getPassword(): String = securityUserDbEntity.password
 
-    override fun getUsername(): String = securityUserDbEntity.username
+    override fun getUsername(): String = securityUserDbEntity.email
 
     override fun isAccountNonExpired(): Boolean = true
 

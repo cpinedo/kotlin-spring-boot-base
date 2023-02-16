@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS base.users
     id uuid NOT NULL,
     email text,
     password text,
-    username text,
+    alias text,
     erased boolean,
     CONSTRAINT users_pkey PRIMARY KEY (id)
 );

@@ -51,6 +51,10 @@ security:
   passwordMaxLength: 50
   passwordMinLength: 3
   customLimits: true
+  google:
+    clientIds: >
+      example.client.foo,
+      example.client.bar
 
 logging:
   level:

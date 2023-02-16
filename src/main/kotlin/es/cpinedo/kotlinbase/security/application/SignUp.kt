@@ -20,8 +20,8 @@ class SignUpHandler(
         if (request.password.length < Constants.PASSWORD_MIN_LENGTH)
             throw PasswordTooShortException(Constants.PASSWORD_MIN_LENGTH)
 
-        if (userService.userNameInUse(request.username))
-            throw FieldAlreadyInUseException("user")
+        if (userService.aliasInUse(request.alias))
+            throw FieldAlreadyInUseException("alias")
 
         if (userService.emailInUse(request.email))
             throw FieldAlreadyInUseException("mail")
@@ -30,11 +30,11 @@ class SignUpHandler(
 
         val userId = UUID.randomUUID()
         val user = UserData(
-            userId,
-            request.username,
-            request.email,
-            strRoles,
-            false
+            id=userId,
+            alias=request.alias,
+            email=request.email,
+            roles=strRoles,
+            erased=false,
         )
 
         userService.save(user, request.password)

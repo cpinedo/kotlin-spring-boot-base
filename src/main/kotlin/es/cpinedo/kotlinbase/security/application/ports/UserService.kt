@@ -5,7 +5,7 @@ import java.util.*
 
 interface UserService {
     fun findUserById(id: UUID): UserData
-    fun userNameInUse(username: String): Boolean
+    fun aliasInUse(alias: String): Boolean
     fun emailInUse(email: String): Boolean
     fun save(user: UserData, password: String): UserData
     fun doesEmailExist(mail: String): Boolean
