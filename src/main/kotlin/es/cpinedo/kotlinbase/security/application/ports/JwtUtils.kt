@@ -11,5 +11,5 @@ interface JwtUtils {
     fun getUserNameFromJwtToken(token: String?): String
     fun validateJwtToken(authToken: String?): Boolean
     fun buildToken(username: String, email: String, loginMethod: LoginMethod, grantedAuthorities: Array<String>): JwtToken
-    fun getTokenData(token: String): TokenData
+    fun getTokenData(token: String, ignoreExpired: Boolean): TokenData
 }

@@ -25,7 +25,7 @@ class RefreshTokenHandler(
             .map(refreshTokenService::verifyExpiration)
             .map { oldRefreshToken ->
                 val user = oldRefreshToken?.userId?.let { userService.findUserById(it) }
-                val jwt: JwtToken = jwtUtils.generateTokenFromEmail(user!!.email, jwtUtils.getTokenData(request.token).loginMethod)
+                val jwt: JwtToken = jwtUtils.generateTokenFromEmail(user!!.email, jwtUtils.getTokenData(request.token, true).loginMethod)
                 val refreshToken: RefreshTokenData = refreshTokenService.refreshRefreshToken(oldRefreshToken)
 
                 RefreshTokenResponse(jwt, refreshToken)

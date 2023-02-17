@@ -82,9 +82,7 @@ class JwtUtilsImpl(
         loginMethod: LoginMethod,
         grantedAuthorities: Array<String>
     ): JwtToken {
-        val apiKeySecretBytes =
-            DatatypeConverter.parseBase64Binary(secret)
-        val signingKey: Key = SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.jcaName)
+        val signingKey: Key =createSigningKey(secret)
 
         val expirationTime = Date(Date().time + configurationValues.jwtExpirationMs)
 
@@ -102,8 +100,18 @@ class JwtUtilsImpl(
         )
     }
 
-    override fun getTokenData(token: String): TokenData {
-        return with(Jwts.parser().setSigningKey(secret.toByteArray()).parseClaimsJws(token).body) {
+    override fun getTokenData(token: String, ignoreExpired: Boolean): TokenData {
+        val body = try {
+            Jwts.parser().setSigningKey(createSigningKey(secret)).parseClaimsJws(token).body
+        } catch (e: ExpiredJwtException) {
+            logger.info("token expired, ignoreExpired=$ignoreExpired")
+            if(!ignoreExpired)
+                throw e
+            else
+                e.claims
+        }
+
+        return with(body) {
             TokenData(
                 this["sub"] as String,
                 this["alias"] as String,
@@ -111,6 +119,12 @@ class JwtUtilsImpl(
                 (this["authorities"] as ArrayList<String>).toList(),
             )
         }
+    }
+
+    private fun createSigningKey(secret: String):Key{
+        val apiKeySecretBytes =
+            DatatypeConverter.parseBase64Binary(secret)
+        return SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.jcaName)
     }
 
     class TokenNotExpiredYetException : CoreException("The token didn't expire yet", ErrorType.CONFLICT)
