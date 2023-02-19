@@ -8,6 +8,7 @@ import es.cpinedo.kotlinbase.core.domain.CoreException
 import es.cpinedo.kotlinbase.core.domain.ErrorType
 import es.cpinedo.kotlinbase.security.application.ports.GoogleTokenValidatorService
 import es.cpinedo.kotlinbase.security.domain.GoogleTokenData
+import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
@@ -31,15 +32,21 @@ class GoogleTokenValidatorImpl : GoogleTokenValidatorService {
         val userId: String =
             payload.subject ?: throw InvalidGoogleTokenException("UserId not present in token", ErrorType.UNAUTHORIZED)
 
+        val name = payload["name"] ?: ""
+        val picture = payload["picture"] ?: ""
+        val locale = payload["locale"] ?: ""
+        val familyName = payload["family_name"] ?: ""
+        val givenName = payload["given_name"] ?: ""
+
         return GoogleTokenData(
             userId = userId,
             email = payload.email,
             emailVerified = payload.emailVerified,
-            name = payload["name"] as String,
-            pictureUrl = payload["picture"] as String,
-            locale = payload["locale"] as String,
-            familyName = payload["family_name"] as String,
-            givenName = payload["given_name"] as String,
+            name = name as String,
+            pictureUrl = picture as String,
+            locale = locale as String,
+            familyName = familyName as String,
+            givenName = givenName as String,
         )
     }
 }
