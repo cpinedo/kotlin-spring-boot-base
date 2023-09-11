@@ -37,7 +37,7 @@ class AuthenticationController(
                 alias = signUpRequest.alias,
                 password = signUpRequest.password,
                 email = signUpRequest.email,
-                roles = signUpRequest.roles
+                roles = setOf("user"),
             )
         )
         return ResponseEntity.ok(MessageResponse("User registered successfully!"))
